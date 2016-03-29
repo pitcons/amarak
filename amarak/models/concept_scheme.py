@@ -15,7 +15,8 @@ DEFAULT_NAMESPACES = {
 class ConceptScheme(object):
     uri = None
 
-    def __init__(self, name, namespace, namespaces=None, parents=None):
+    def __init__(self, name, namespace, id=None, namespaces=None, parents=None):
+        self.id = id
         self.parents = ParentsManager(parents)
         self.name = name
         self.ns_prefix = namespace[0]

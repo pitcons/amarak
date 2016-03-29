@@ -15,6 +15,7 @@ from amarak.connections.alchemy import tables as tbl
 
 def mk_concept_scheme(pk, name, namespace, namespaces):
     scheme = ConceptScheme(
+        id=pk,
         name=name,
         namespace=namespace,
         namespaces=json.loads(namespaces) if namespaces else None
