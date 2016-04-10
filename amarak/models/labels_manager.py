@@ -8,13 +8,13 @@ class LabelsManager(object):
         self._labels = []
         self._changes = []
 
-    def _add_raw(self, lang, label_type, literal):
-        label = Label(lang, label_type, literal)
+    def _add_raw(self, lang, label_type, literal, id=None):
+        label = Label(lang, label_type, literal, id=id)
         self._labels.append(label)
         return label
 
-    def add(self, lang, label_type, literal):
-        label = self._add_raw(lang, label_type, literal)
+    def add(self, lang, label_type, literal, id=None):
+        label = self._add_raw(lang, label_type, literal, id)
         self._changes.append(('new', label))
 
     def _remove_raw(self, label):
@@ -23,6 +23,9 @@ class LabelsManager(object):
     def remove(self, label):
         self._remove_raw(label)
         self._changes.append(('remove', label))
+
+    def remove_by_id(self, label_id):
+        self._changes.append(('remove_by_id', label_id))
 
     def all(self):
         return self._labels
@@ -33,6 +36,9 @@ class LabelsManager(object):
 
     def to_python(self):
         return [
-            {'lang': label.lang, 'type': label.type, 'literal': label.literal}
+            {'id': label.id,
+             'lang': label.lang,
+             'type': label.type,
+             'literal': label.literal}
             for label in self.all()
         ]

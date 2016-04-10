@@ -43,10 +43,12 @@ class Language(Base, ReprNameMixin):
 scheme = Table(
     'scheme', Base.metadata,
     Column('id', Integer, primary_key=True),
+    Column('scheme_id', String(64), nullable=False),
     Column('name', String(64), nullable=False),
     Column('ns_prefix', String(512), nullable=False),
     Column('ns_url', String(512), nullable=False),
     Column('namespaces', Text(), nullable=False, server_default=''),
+    UniqueConstraint('scheme_id'),
 )
 
 

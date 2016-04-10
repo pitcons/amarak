@@ -5,9 +5,11 @@ from rdflib.namespace import SKOS
 class LabelTypeError(Exception):
     pass
 
+
 class Label(object):
 
-    def __init__(self, lang, type, literal):
+    def __init__(self, lang, type, literal, id=None):
+        self.id = id
         self.lang = smart_decode(lang)
         self.type = smart_decode(type)
         self.literal = smart_decode(literal)
@@ -23,10 +25,11 @@ class Label(object):
             raise LabelTypeError
 
     def __repr__(self):
-        return 'Label("{0}", "{1}", "{2}")'.format(
+        return 'Label("{0}", "{1}", "{2}", id={3})'.format(
             smart_encode(self.lang),
             smart_encode(self.type),
-            smart_encode(self.literal)
+            smart_encode(self.literal),
+            smart_encode(self.id)
         )
 
     def __eq__(self, other):

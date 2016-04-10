@@ -24,8 +24,15 @@ class Schemes(BaseSchemes):
     def __init__(self, conn):
         self.conn = conn
 
-    def get(self, name):
-        schemes = self._fetch({'name': name}, None, None)
+    def get(self, id=None, name=None):
+        if id:
+            params = {'id': id}
+        elif name:
+            params = {'name': name}
+        else:
+            raise ValueError('The parameter name or id is expected')
+        schemes = self._fetch(params, None, None)
+
         if len(schemes) > 1:
             raise MultipleReturned
         elif not schemes:
@@ -44,6 +51,9 @@ class Schemes(BaseSchemes):
         if 'name' in params:
             req_data['name'] = params['name']
 
+        if 'id' in params:
+            req_data['id'] = params['id']
+
         response = self.conn._get('schemes/', req_data)
         result = []
         for scheme_d in response['schemes']:
@@ -51,10 +61,10 @@ class Schemes(BaseSchemes):
                 name=scheme_d['name'],
                 namespace=(scheme_d['ns_prefix'], scheme_d['ns_url']),
             )
-            for parent_name in scheme_d['parents']:
+            for parent_id in scheme_d['parents']:
                 # TODO optimize
-                scheme.parents._add_raw(self.get(parent_name))
-            scheme._rest_name = scheme.name
+                scheme.parents._add_raw(self.get(parent_id))
+            scheme._rest_id = scheme.id
             result.append(scheme)
 
         return result

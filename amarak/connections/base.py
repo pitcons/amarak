@@ -20,7 +20,8 @@ class ResultProxy(object):
         return self
 
     def filter(self, *args, **kwargs):
-        raise NotImplementedError
+        self._params.update(kwargs)
+        return self
 
     def limit(self, value):
         self._limit = value
@@ -75,18 +76,22 @@ class CommonManager(object):
 
 class BaseSchemes(CommonManager):
 
-    def get(self, uri=None, name=None):
+    def get(self, id=None, name=None):
         raise NotImplementedError
 
     def update(self, scheme):
         raise NotImplementedError
 
-    def get_or_create(self, name):
+    def get_or_create(self, id):
         try:
-            return self.get(name=name)
+            return self.get(id=id)
         except DoesNotExist:
             # TODO default namespace from config
-            return ConceptScheme(name, (name, 'http://example.com'))
+            return ConceptScheme(
+                id=id,
+                name=id,
+                namespace=(id, 'http://example.com')
+            )
 
 
 class BaseConcepts(CommonManager):

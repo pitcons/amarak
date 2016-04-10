@@ -32,13 +32,13 @@ class Concept(object):
         concept = cls(name=data['name'], scheme=scheme)
 
         for label_d in data['labels']:
-            concept.labels._add_raw(label_d['lang'], label_d['type'], label_d['literal'])
+            concept.labels._add_raw(label_d['lang'], label_d['type'], label_d['literal'], label_d.get('id'))
 
         return concept
 
     def to_python(self):
         return {
-            'scheme': self.scheme.name,
+            'scheme': self.scheme.id,
             'name': self.name,
             'labels': self.labels.to_python()
         }

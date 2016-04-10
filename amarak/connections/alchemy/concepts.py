@@ -52,6 +52,10 @@ class Concepts(BaseConcepts):
                     label=label.literal
                 )
                 result = self.session.execute(iquery)
+            elif action == 'remove_by_id':
+                query = delete(tbl.concept_label)\
+                    .where(tbl.concept_label.c.id==label)
+                self.session.execute(query)
             else:
                 raise NotImplementedError(action)
         concept.labels._changes = []
@@ -117,7 +121,7 @@ class Concepts(BaseConcepts):
 
         records = self.session.execute(query).fetchall()
         for pk, concept_id, label_type, lang, title in records:
-            concepts_d[concept_id].labels._add_raw(lang, label_type, title)
+            concepts_d[concept_id].labels._add_raw(lang, label_type, title, pk)
 
         return concepts_l
 

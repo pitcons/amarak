@@ -57,7 +57,7 @@ class SchemesTest(TestDB):
         scheme = ConceptScheme('example', ('example', 'http://example.com'))
         self.conn.schemes.update(scheme)
 
-        scheme = self.conn.schemes.get(name='example')
+        scheme = self.conn.schemes.get(id='example')
         self.assertEquals(scheme.name, 'example')
         self.assertEquals(scheme.ns_prefix, 'example')
         self.assertEquals(scheme.ns_url, 'http://example.com')
@@ -124,10 +124,11 @@ class SchemesTest(TestDB):
         self.conn.schemes.update(scheme2)
         self.conn.schemes.update(scheme1)
 
-        scheme = self.conn.schemes.get(name='example1')
+
+        scheme = self.conn.schemes.get(id='example1')
         parents = scheme.parents.all()
         self.assertEquals(len(parents), 1)
-        self.assertEquals(parents[0].name, 'example2')
+        self.assertEquals(parents[0].id, 'example2')
 
 
 class ConceptsTest(TestDB):

@@ -13,9 +13,9 @@ from amarak.connections.base import (ResultProxy,
 from amarak.connections.alchemy import tables as tbl
 
 
-def mk_concept_scheme(pk, name, namespace, namespaces):
+def mk_concept_scheme(pk, id, name, namespace, namespaces):
     scheme = ConceptScheme(
-        id=pk,
+        id=id,
         name=name,
         namespace=namespace,
         namespaces=json.loads(namespaces) if namespaces else None
@@ -50,17 +50,21 @@ class Schemes(BaseSchemes):
                 schemes_d[parent_id]
             )
 
-    def get(self, name=None):
+    def get(self, name=None, id=None):
         # TODO optimize
         schemes = self.all()
         for scheme in schemes:
             if name and scheme.name == name:
                 return scheme
 
+            if id and scheme.id == id:
+                return scheme
+
         raise DoesNotExist()
 
     def _fetch(self, params, offset, limit):
         query = select([tbl.scheme.c.id,
+                        tbl.scheme.c.scheme_id,
                         tbl.scheme.c.name,
                         tbl.scheme.c.ns_prefix,
                         tbl.scheme.c.ns_url,
@@ -74,8 +78,8 @@ class Schemes(BaseSchemes):
 
         records = self.session.execute(query).fetchall()
         schemes = []
-        for (pk, name, ns_prefix, ns_url, namespaces) in records:
-            schemes.append(mk_concept_scheme(pk, name, (ns_prefix, ns_url), namespaces))
+        for (pk, scheme_id, name, ns_prefix, ns_url, namespaces) in records:
+            schemes.append(mk_concept_scheme(pk, scheme_id, name, (ns_prefix, ns_url), namespaces))
 
         query = select([tbl.scheme])
         records = self.session.execute(query).fetchall()
@@ -98,6 +102,7 @@ class Schemes(BaseSchemes):
             query = update(tbl.scheme)\
                 .where(tbl.scheme.c.id==scheme._alchemy_pk)\
                 .values(name=scheme.name,
+                        scheme_id=scheme.id,
                         ns_prefix=scheme.ns_prefix,
                         ns_url=scheme.ns_url,
                         namespaces=json.dumps(scheme.namespaces))
@@ -114,6 +119,7 @@ class Schemes(BaseSchemes):
             else:
                 aquery = tbl.scheme.insert().values(
                     name=scheme.name,
+                    scheme_id=scheme.id,
                     ns_prefix=scheme.ns_prefix,
                     ns_url=scheme.ns_url
                 )

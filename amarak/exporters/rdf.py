@@ -32,12 +32,12 @@ class RdfExporter(object):
         else:
             self.conn = url
 
-    def do_export(self, scheme_name, stream):
+    def do_export(self, scheme_id, stream):
         graph = Graph()
         graph.bind('skos', 'http://www.w3.org/2004/02/skos/core#')
 
         errors = []
-        scheme = self.conn.schemes.get(name=scheme_name)
+        scheme = self.conn.schemes.get(id=scheme_id)
         graph.bind(scheme.name, scheme.ns_url)
         ns = Namespace(scheme.ns_url)
 
@@ -51,7 +51,6 @@ class RdfExporter(object):
                 graph.add((ns[concept.skos_name()],
                            label.as_skos(),
                            Literal(label.literal, lang=label.lang)))
-
 
         stream.write(graph.serialize(format='turtle'))
 
