@@ -2,6 +2,7 @@
 from amarak.utils import smart_decode, smart_encode
 from .labels_manager import LabelsManager
 from .parents_manager import ParentsManager
+from .relations_manager import RelationsManager
 
 
 DEFAULT_NAMESPACES = {
@@ -15,7 +16,8 @@ DEFAULT_NAMESPACES = {
 class ConceptScheme(object):
     uri = None
 
-    def __init__(self, name, namespace, id=None, namespaces=None, parents=None):
+    def __init__(self, name, namespace, id=None,
+                 namespaces=None, parents=None):
         self.id = id or name
         self.parents = ParentsManager(parents)
         self.name = name
@@ -23,6 +25,7 @@ class ConceptScheme(object):
         self.ns_url = namespace[1]
         self.labels = LabelsManager()
         self.namespaces = namespaces or DEFAULT_NAMESPACES.copy()
+        self.relations = RelationsManager()
 
     @property
     def name(self):
@@ -38,3 +41,6 @@ class ConceptScheme(object):
             smart_encode(self.ns_prefix),
             smart_encode(self.ns_url)
         )
+
+    def __eq__(self, other):
+        return self.id == other.id

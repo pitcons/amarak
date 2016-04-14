@@ -13,32 +13,7 @@ from amarak.connections.base import (BaseSchemes,
 from amarak.connections.alchemy import tables as tbl
 from .schemes import Schemes
 from .concepts import Concepts
-
-# def update_helper(session, obj, mapping):
-#     if hasattr(obj, '_alchemy_pk') and obj._alchemy_pk is not None:
-#         query = update(tbl.scheme)\
-#             .where(tbl.scheme.c.id==obj._alchemy_pk)\
-#             .values(prefix=obj.name,
-#                     uri=obj.uri,
-#                     namespaces=json.dumps(obj.namespaces))
-#         result = session.execute(query)
-#         if result.rowcount == 0:
-#             obj._alchemy_pk = None
-#             return update_helper(session, obj, mapping))
-#     else:
-#         query = select([tbl.scheme]).where(tbl.scheme.c.uri==obj.uri)
-#         result = session.execute(query).fetchone()
-#         if result:
-#             obj._alchemy_pk = result[0]
-#             return update_helper(session, obj, mapping)
-#         else:
-#             aquery = tbl.scheme.insert().values(prefix=obj.name,
-#                                                 uri=obj.uri)
-#         result = session.execute(aquery)
-#         obj._alchemy_pk = result.inserted_primary_key[0]
-
-
-
+from .relations import Relations
 
 
 class AlchemyConnection(BaseConnection):
@@ -52,3 +27,4 @@ class AlchemyConnection(BaseConnection):
         self.session = self.Session()
         self.schemes = Schemes(self)
         self.concepts = Concepts(self)
+        self.relations = Relations(self)

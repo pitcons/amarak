@@ -4,6 +4,8 @@ import requests
 
 from concept import *
 from concept_scheme import *
+from link import *
+from relation import *
 from label import Label
 from exception import *
 

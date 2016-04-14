@@ -7,10 +7,13 @@ from os.path import join
 
 from amarak.models.concept_scheme import ConceptScheme
 from amarak.models.concept import Concept
+from amarak.models.relation import Relation
 from amarak.models.exception import DoesNotExist, MultipleReturned
 from amarak.connections.base import (BaseSchemes,
                                      BaseConcepts,
-                                     BaseConnection)
+                                     BaseConnection,
+                                     BaseRelations)
+from .relations import Relations
 
 def orig_name(item):
     try:
@@ -64,6 +67,11 @@ class Schemes(BaseSchemes):
             for parent_id in scheme_d['parents']:
                 # TODO optimize
                 scheme.parents._add_raw(self.get(parent_id))
+
+            for relation in scheme_d['relations']:
+                # TODO Incorret
+                scheme.relations._add_raw(Relation(scheme, relation['name']))
+
             scheme._rest_id = scheme.id
             result.append(scheme)
 
@@ -75,8 +83,14 @@ class Schemes(BaseSchemes):
             key: getattr(scheme, key)
             for key in ('name', 'ns_prefix', 'ns_url')
         }
+
         # TODO update namespaces support
         data['parents'] = [parent.name for parent in scheme.parents.all()]
+
+        # TODO update namespaces support
+        data['relations'] = [
+            relation.to_python() for relation in scheme.relations.all()
+        ]
 
         self.conn._put('schemes/' + orig_name(scheme), data)
         scheme._orig_name = scheme.name
@@ -121,6 +135,7 @@ class RestConnection(BaseConnection):
         self.url = url
         self.schemes = Schemes(self)
         self.concepts = Concepts(self)
+        self.relations = Relations(self)
 
     def _get(self, url, data=None):
         url = join(self.url, url)

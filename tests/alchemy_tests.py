@@ -9,6 +9,7 @@ from amarak.models import *
 from amarak.connections.alchemy import AlchemyConnection
 from amarak.connections.alchemy.tables import Base
 
+
 URL = 'postgresql://amarak_test:123123@localhost:5432/amarak_test'
 class TestDB(unittest.TestCase):
 
@@ -129,6 +130,17 @@ class SchemesTest(TestDB):
         parents = scheme.parents.all()
         self.assertEquals(len(parents), 1)
         self.assertEquals(parents[0].id, 'example2')
+
+    def test_relations(self):
+        scheme = ConceptScheme('example', ('example', 'http://example.com'))
+        scheme.relations.add(Relation(scheme, 'test-relation'))
+        self.conn.schemes.update(scheme)
+
+        schemes = list(self.conn.schemes.all())
+        self.assertEquals(len(schemes), 1)
+
+        self.assertEquals(schemes[0].relations.all()[0].name, 'test-relation')
+        self.assertEquals(schemes[0].relations.all()[0].scheme, scheme)
 
 
 class ConceptsTest(TestDB):

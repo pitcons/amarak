@@ -18,7 +18,7 @@ class LabelsManager(object):
         self._changes.append(('new', label))
 
     def _remove_raw(self, label):
-        self._labels.append(label)
+        self._labels.remove(label)
 
     def remove(self, label):
         self._remove_raw(label)

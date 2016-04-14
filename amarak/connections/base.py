@@ -2,6 +2,7 @@
 import collections
 from amarak.models.concept_scheme import ConceptScheme
 from amarak.models.concept import Concept
+from amarak.models.relation import Relation
 from amarak.models.exception import DoesNotExist
 
 
@@ -106,6 +107,10 @@ class BaseConcepts(CommonManager):
             return Concept(name, scheme=scheme)
 
 
+class BaseRelations(CommonManager):
+    pass
+
+
 class BaseConnection(object):
 
     def update(self, obj):
@@ -116,6 +121,8 @@ class BaseConnection(object):
             self.concepts.update(obj)
         elif isinstance(obj, ConceptScheme):
             self.schemes.update(obj)
+        elif isinstance(obj, Relation):
+            self.relations.update(obj)
         else:
             raise ValueError(
                 "Expected Concept or ConceptScheme, but {} was passed"
