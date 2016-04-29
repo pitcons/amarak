@@ -2,7 +2,7 @@
 import sqlalchemy
 import json
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.sql import select, update, delete
+from sqlalchemy.sql import select, update, delete, and_
 
 from amarak.models.concept_scheme import ConceptScheme
 from amarak.models.relation import Relation
@@ -160,9 +160,9 @@ class Schemes(BaseSchemes):
             elif action == 'remove':
                 if not hasattr(parent, '_alchemy_pk') or not parent._alchemy_pk:
                     raise NotImplementedError()
-                dquery = tbl.scheme_hierarchy.insert().delete(
-                    scheme_id=scheme._alchemy_pk,
-                    parent_id=parent._alchemy_pk,
+                dquery = delete(tbl.scheme_hierarchy).where(
+                    and_(tbl.scheme_hierarchy.c.scheme_id==scheme._alchemy_pk,
+                         tbl.scheme_hierarchy.c.parent_id==parent._alchemy_pk)
                 )
                 self.session.execute(dquery)
             else:
@@ -173,6 +173,10 @@ class Schemes(BaseSchemes):
                 if not hasattr(relation, '_alchemy_pk') or not relation._alchemy_pk:
                     self.conn.update(relation)
             elif action == 'remove':
-                raise NotImplementedError(action)
+                dquery = delete(tbl.concept_relation).where(
+                    and_(tbl.concept_relation.c.scheme_id==scheme._alchemy_pk,
+                         tbl.concept_relation.c.name==relation.name)
+                )
+                self.session.execute(dquery)
             else:
                 raise NotImplementedError(action)

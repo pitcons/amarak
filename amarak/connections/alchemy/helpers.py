@@ -2,11 +2,13 @@
 from sqlalchemy.sql import select, update, delete
 
 def update_helper(table, session, obj, mapping):
+
     if hasattr(obj, '_alchemy_pk') and obj._alchemy_pk is not None:
         query = update(table)\
             .where(table.c.id==obj._alchemy_pk)\
             .values(**mapping)
         result = session.execute(query)
+
         if result.rowcount == 0:
             raise RuntimeError("Can't update object")
             # obj._alchemy_pk = None

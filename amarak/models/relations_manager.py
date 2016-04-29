@@ -31,3 +31,8 @@ class RelationsManager(object):
     def clear(self):
         for relation in self._relations:
             self.remove(relation)
+
+    def get(self, name):
+        for relation in self._relations:
+            if relation.name == name:
+                return relation

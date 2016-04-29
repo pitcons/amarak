@@ -137,9 +137,36 @@ class SchemesTest(TestDB):
         self.conn.schemes.update(scheme)
 
         schemes = list(self.conn.schemes.all())
-        self.assertEquals(len(schemes), 1)
+        relations = schemes[0].relations.all()
+        self.assertEquals(len(relations), 1)
 
-        self.assertEquals(schemes[0].relations.all()[0].name, 'test-relation')
+        self.assertEquals(relations[0].name, 'test-relation')
+        self.assertEquals(relations[0].scheme, scheme)
+
+    def test_delete_relation(self):
+        scheme = ConceptScheme('example', ('example', 'http://example.com'))
+        scheme.relations.add(Relation(scheme, 'test-relation'))
+        self.conn.schemes.update(scheme)
+
+        scheme.relations.remove(Relation(scheme, 'test-relation'))
+        self.conn.schemes.update(scheme)
+
+        schemes = list(self.conn.schemes.all())
+        relations = schemes[0].relations.all()
+        self.assertEquals(len(relations), 0)
+
+    def test_relation_update(self):
+        scheme = ConceptScheme('example', ('example', 'http://example.com'))
+        relation = Relation(scheme, 'test-relation')
+        scheme.relations.add(relation)
+        self.conn.schemes.update(scheme)
+
+        relation.name = 'changed-name'
+        self.conn.update(relation)
+
+        schemes = list(self.conn.schemes.all())
+        self.assertEquals(len(schemes), 1)
+        self.assertEquals(schemes[0].relations.all()[0].name, 'changed-name')
         self.assertEquals(schemes[0].relations.all()[0].scheme, scheme)
 
 
