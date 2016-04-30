@@ -111,6 +111,10 @@ class BaseRelations(CommonManager):
     pass
 
 
+class BaseLinks(CommonManager):
+    pass
+
+
 class BaseConnection(object):
 
     def update(self, obj):

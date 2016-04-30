@@ -204,3 +204,21 @@ class ConceptsTest(TestDB):
             [Label("en", "prefLabel", "Some label"),
              Label("ru", "prefLabel", "Некоторое название")]
         )
+
+    def test_links(self):
+        scheme = ConceptScheme('example1', ('example1', 'http://example1.com'))
+        self.conn.schemes.update(scheme)
+
+        relation = Relation(scheme, 'test-relation')
+        scheme.relations.add(relation)
+        self.conn.schemes.update(scheme)
+
+        concept1 = Concept('First concept', scheme=scheme)
+        concept2 = Concept('Second concept', scheme=scheme)
+        self.conn.concepts.update(concept1)
+        self.conn.concepts.update(concept2)
+
+        link = Link(concept1, concept2, relation, scheme)
+        self.conn.links.update(link)
+
+        links = list(self.conn.links.all())

@@ -26,3 +26,20 @@ def update_helper(table, session, obj, mapping):
         aquery = table.insert().values(**mapping)
         result = session.execute(aquery)
         obj._alchemy_pk = result.inserted_primary_key[0]
+
+def fetch_helper(session, fields, params, offset, limit):
+    query = select(fields)
+
+    if offset is not None:
+        query = query.offset(offset)
+
+    if limit is not None:
+        query = query.limit(limit)
+
+    records = session.execute(query).fetchall()
+
+    records = session.execute(query).fetchall()
+    for props in records:
+        print props
+
+    return concepts_l

@@ -14,6 +14,7 @@ from amarak.connections.alchemy import tables as tbl
 from .schemes import Schemes
 from .concepts import Concepts
 from .relations import Relations
+from .links import Links
 
 
 class AlchemyConnection(BaseConnection):
@@ -28,3 +29,4 @@ class AlchemyConnection(BaseConnection):
         self.schemes = Schemes(self)
         self.concepts = Concepts(self)
         self.relations = Relations(self)
+        self.links = Links(self)

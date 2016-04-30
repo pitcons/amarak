@@ -43,6 +43,7 @@ class Concepts(BaseConcepts):
                 result = self.session.execute(aquery)
                 concept._alchemy_pk = result.inserted_primary_key[0]
 
+        # labels
         for action, label in concept.labels._changes:
             if action == 'new':
                 iquery = tbl.concept_label.insert().values(
@@ -58,6 +59,7 @@ class Concepts(BaseConcepts):
                 self.session.execute(query)
             else:
                 raise NotImplementedError(action)
+
         concept.labels._changes = []
 
 

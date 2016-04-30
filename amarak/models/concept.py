@@ -1,6 +1,14 @@
 # encoding: utf8
 from .labels_manager import LabelsManager
+from .manager import Manager
+from .link import Link
 from amarak.utils import smart_encode, smart_decode
+
+
+class LinkManager(Manager):
+
+    def __init__(self):
+        super(LinkManager, self).__init__(Link)
 
 
 class Concept(object):
@@ -12,6 +20,7 @@ class Concept(object):
         self.name = name
         self.scheme = scheme
         self.labels = LabelsManager()
+        self.links = LinkManager()
 
     @property
     def name(self):
@@ -32,7 +41,11 @@ class Concept(object):
         concept = cls(name=data['name'], scheme=scheme)
 
         for label_d in data['labels']:
-            concept.labels._add_raw(label_d['lang'], label_d['type'], label_d['literal'], label_d.get('id'))
+            concept.labels._add_raw(
+                label_d['lang'],
+                label_d['type'],
+                label_d['literal'],
+                label_d.get('id'))
 
         return concept
 
