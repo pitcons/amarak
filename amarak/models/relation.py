@@ -7,6 +7,7 @@ class Relation(object):
     def __init__(self, scheme, name):
         self.scheme = scheme
         self.name = smart_decode(name)
+        self._orig_name = self.name
 
     def __repr__(self):
         return "Relation('{0}', '{1}')".format(
@@ -25,3 +26,10 @@ class Relation(object):
             'scheme': self.scheme.id,
             'name': self.name
         }
+
+    @property
+    def orig_name(self):
+        try:
+            return self._orig_name
+        except AttributeError:
+            return self.name

@@ -125,8 +125,9 @@ class SchemesTest(TestDB):
         self.conn.schemes.update(scheme2)
         self.conn.schemes.update(scheme1)
 
-
+        # self.conn.identity_map.clear()
         scheme = self.conn.schemes.get(id='example1')
+
         parents = scheme.parents.all()
         self.assertEquals(len(parents), 1)
         self.assertEquals(parents[0].id, 'example2')
@@ -136,6 +137,7 @@ class SchemesTest(TestDB):
         scheme.relations.add(Relation(scheme, 'test-relation'))
         self.conn.schemes.update(scheme)
 
+        # self.conn.identity_map.clear()
         schemes = list(self.conn.schemes.all())
         relations = schemes[0].relations.all()
         self.assertEquals(len(relations), 1)
@@ -164,6 +166,7 @@ class SchemesTest(TestDB):
         relation.name = 'changed-name'
         self.conn.update(relation)
 
+        # self.conn.identity_map.clear()
         schemes = list(self.conn.schemes.all())
         self.assertEquals(len(schemes), 1)
         self.assertEquals(schemes[0].relations.all()[0].name, 'changed-name')
@@ -178,6 +181,7 @@ class ConceptsTest(TestDB):
         concept1 = Concept('Some concept', scheme=scheme)
         self.conn.concepts.update(concept1)
 
+        # self.conn.identity_map.clear()
         concepts = list(self.conn.concepts.filter(scheme=scheme))
         self.assertEquals(len(concepts), 1)
         self.assertEquals(concepts[0].name, 'Some concept')
@@ -198,6 +202,7 @@ class ConceptsTest(TestDB):
         concept1.labels.add('ru', 'prefLabel', 'Некоторое название')
         self.conn.concepts.update(concept1)
 
+        # self.conn.identity_map.clear()
         concepts = self.conn.concepts.filter(scheme=scheme)
         self.assertEquals(
             concepts[0].labels.all(),
@@ -221,4 +226,5 @@ class ConceptsTest(TestDB):
         link = Link(concept1, concept2, relation, scheme)
         self.conn.links.update(link)
 
+        # self.conn.identity_map.clear()
         links = list(self.conn.links.all())

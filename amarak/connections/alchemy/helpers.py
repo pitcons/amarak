@@ -1,8 +1,8 @@
 # encoding: utf8
 from sqlalchemy.sql import select, update, delete
 
-def update_helper(table, session, obj, mapping):
-
+def update_helper(ikey, table, session, obj, mapping):
+    raise ValueError
     if hasattr(obj, '_alchemy_pk') and obj._alchemy_pk is not None:
         query = update(table)\
             .where(table.c.id==obj._alchemy_pk)\
@@ -28,6 +28,7 @@ def update_helper(table, session, obj, mapping):
         obj._alchemy_pk = result.inserted_primary_key[0]
 
 def fetch_helper(session, fields, params, offset, limit):
+    raise ValueError
     query = select(fields)
 
     if offset is not None:

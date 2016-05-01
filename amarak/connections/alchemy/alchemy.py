@@ -20,6 +20,7 @@ from .links import Links
 class AlchemyConnection(BaseConnection):
 
     def __init__(self, url):
+        super(AlchemyConnection, self).__init__()
         self.engine = sqlalchemy.create_engine(
             url,
             isolation_level="AUTOCOMMIT"

@@ -20,46 +20,23 @@ class Concepts(BaseConcepts):
         self.session = conn.session
 
     def update(self, concept):
-        if hasattr(concept, '_alchemy_pk') and concept._alchemy_pk is not None:
-            query = update(tbl.concept)\
-                .where(tbl.concept.c.id==concept._alchemy_pk)\
-                .values(name=concept.name)
-            result = self.session.execute(query)
-            if result.rowcount == 0:
-                concept._alchemy_pk = None
-                return self.update(concept)
-
-        else:
-            query = select([tbl.concept])\
-                .where(tbl.concept.c.name==concept.name)
-            result = self.session.execute(query).fetchone()
-            if result:
-                concept._alchemy_pk = result[0]
-            else:
-                aquery = tbl.concept.insert().values(
-                    name=concept.name,
-                    scheme_id=concept.scheme._alchemy_pk
-                )
-                result = self.session.execute(aquery)
-                concept._alchemy_pk = result.inserted_primary_key[0]
-
+        self.update_helper(
+            'concepts', tbl.concept, concept,
+            {'name': concept.name,
+             'scheme_id': concept.scheme._alchemy_pk}
+        )
         # labels
-        for action, label in concept.labels._changes:
-            if action == 'new':
-                iquery = tbl.concept_label.insert().values(
-                    concept_id=concept._alchemy_pk,
-                    lang=label.lang,
-                    type=label.type,
-                    label=label.literal
-                )
-                result = self.session.execute(iquery)
-            elif action == 'remove_by_id':
-                query = delete(tbl.concept_label)\
-                    .where(tbl.concept_label.c.id==label)
-                self.session.execute(query)
-            else:
-                raise NotImplementedError(action)
-
+        self.update_changes(
+            tbl.concept_label,
+            concept.labels._changes,
+            insert_f=lambda obj: {
+                'concept_id': concept._alchemy_pk,
+                'lang': obj.lang,
+                'type': obj.type,
+                'label': obj.literal
+            },
+            delete_f=None
+        )
         concept.labels._changes = []
 
 
@@ -81,6 +58,10 @@ class Concepts(BaseConcepts):
         if 'scheme' in params:
             scheme = params['scheme']
             query = query.where(tbl.concept.c.scheme_id==scheme._alchemy_pk)
+        elif 'pks' in params:
+            if not params['pks']:
+                return []
+            query = query.where(tbl.scheme.c.id.in_(params['pks']))
         else:
             raise NotImplementedError
 
@@ -97,6 +78,9 @@ class Concepts(BaseConcepts):
         concepts_d = {}
         concepts_l = []
         for pk, name, scheme_id in records:
+            scheme = self.conn.identity_map.get('schemes', scheme_id)
+            if not scheme:
+                raise RuntimeError
             concept = Concept(name=name, scheme=scheme)
             concept._alchemy_pk = pk
             concepts_d[pk] = concept
@@ -113,10 +97,10 @@ class Concepts(BaseConcepts):
                 join(tbl.concept, tbl.concept_label,
                      tbl.concept.c.id==tbl.concept_label.c.concept_id)
             )\
-            .where(tbl.concept.c.scheme_id==scheme._alchemy_pk)\
             .order_by(tbl.concept_label.c.lang,
                       tbl.concept_label.c.type,
                       tbl.concept_label.c.label,)
+            # .where(tbl.concept.c.scheme_id==scheme._alchemy_pk)\
 
         if 'name' in params:
             query = query.where(tbl.concept.c.name==params['name'])

@@ -14,6 +14,7 @@ from amarak.connections.base import (BaseSchemes,
                                      BaseConnection,
                                      BaseRelations)
 from .relations import Relations
+from .links import Links
 
 def orig_name(item):
     try:
@@ -44,6 +45,7 @@ class Schemes(BaseSchemes):
             return schemes[0]
 
     def _fetch(self, params, offset, limit):
+
         req_data = {}
         if offset is not None:
             req_data['offset'] = offset
@@ -136,6 +138,7 @@ class RestConnection(BaseConnection):
         self.schemes = Schemes(self)
         self.concepts = Concepts(self)
         self.relations = Relations(self)
+        self.links = Links(self)
 
     def _get(self, url, data=None):
         url = join(self.url, url)

@@ -12,7 +12,7 @@ from amarak.connections.base import (ResultProxy,
                                      BaseConcepts,
                                      BaseConnection)
 from amarak.connections.alchemy import tables as tbl
-
+from .helpers import update_helper
 
 def mk_concept_scheme(pk, id, name, namespace, namespaces):
     scheme = ConceptScheme(
@@ -31,11 +31,14 @@ class Schemes(BaseSchemes):
         self.conn = conn
         self.session = conn.session
 
-    def _prepare_fill(self, schemes):
-        pks = [scheme._alchemy_pk for scheme in schemes]
+    def _prepare_fill(self, schemes, from_cache_pks):
+        pks = [scheme._alchemy_pk
+               for scheme in schemes
+               if scheme._alchemy_pk not in from_cache_pks]
         schemes_d = {
             scheme._alchemy_pk: scheme
             for scheme in schemes
+            if scheme._alchemy_pk not in from_cache_pks
         }
 
         return pks, schemes_d
@@ -55,6 +58,9 @@ class Schemes(BaseSchemes):
             )
 
     def _fill_relations(self, schemes_d, pks):
+        if not pks:
+            return
+
         query = select(
             [tbl.concept_relation.c.id,
              tbl.concept_relation.c.scheme_id,
@@ -96,15 +102,28 @@ class Schemes(BaseSchemes):
         if limit is not None:
             query = query.limit(limit)
 
+        if 'pks' in params:
+            if not params['pks']:
+                return []
+            query = query.where(tbl.scheme.c.id.in_(params['pks']))
+
         records = self.session.execute(query).fetchall()
         schemes = []
+        from_cache_pks = set()
         for (pk, scheme_id, name, ns_prefix, ns_url, namespaces) in records:
-            schemes.append(mk_concept_scheme(pk, scheme_id, name, (ns_prefix, ns_url), namespaces))
+            scheme_obj = self.conn.identity_map.get('schemes', pk)
+            if scheme_obj:
+                from_cache_pks.add(pk)
+                schemes.append(scheme_obj)
+            else:
+                scheme_obj = mk_concept_scheme(pk, scheme_id, name, (ns_prefix, ns_url), namespaces)
+                self.conn.identity_map.put('schemes', pk, scheme_obj)
+                schemes.append(scheme_obj)
 
         query = select([tbl.scheme])
         records = self.session.execute(query).fetchall()
 
-        pks, schemes_d = self._prepare_fill(schemes)
+        pks, schemes_d = self._prepare_fill(schemes, from_cache_pks)
         self._fill_hierarhy(schemes_d, pks)
         self._fill_relations(schemes_d, pks)
         return schemes
@@ -120,63 +139,29 @@ class Schemes(BaseSchemes):
         self.session.execute(query)
 
     def update(self, scheme):
-        if hasattr(scheme, '_alchemy_pk') and scheme._alchemy_pk is not None:
-            query = update(tbl.scheme)\
-                .where(tbl.scheme.c.id==scheme._alchemy_pk)\
-                .values(name=scheme.name,
-                        scheme_id=scheme.id,
-                        ns_prefix=scheme.ns_prefix,
-                        ns_url=scheme.ns_url,
-                        namespaces=json.dumps(scheme.namespaces))
-            result = self.session.execute(query)
-            if result.rowcount == 0:
-                scheme._alchemy_pk = None
-                return self.update(scheme)
-        else:
-            query = select([tbl.scheme]).where(tbl.scheme.c.name==scheme.name)
-            result = self.session.execute(query).fetchone()
-            if result:
-                scheme._alchemy_pk = result[0]
-                return self.update(scheme)
-            else:
-                aquery = tbl.scheme.insert().values(
-                    name=scheme.name,
-                    scheme_id=scheme.id,
-                    ns_prefix=scheme.ns_prefix,
-                    ns_url=scheme.ns_url
-                )
-                result = self.session.execute(aquery)
-                scheme._alchemy_pk = result.inserted_primary_key[0]
+        self.update_helper(
+            'schemes', tbl.scheme, scheme,
+            {'name': scheme.name,
+             'scheme_id': scheme.id,
+             'ns_prefix': scheme.ns_prefix,
+             'ns_url': scheme.ns_url,
+             'namespaces': json.dumps(scheme.namespaces)}
+        )
+        self.update_changes(
+            tbl.scheme_hierarchy,
+            scheme.parents._changes,
+            insert_f=lambda obj: {'scheme_id': scheme._alchemy_pk,
+                                  'parent_id': obj._alchemy_pk},
+        )
+        scheme.parents._changes = []
 
-        for action, parent in scheme.parents._changes:
-            if action == 'new':
-                if not hasattr(parent, '_alchemy_pk') or not parent._alchemy_pk:
-                    self.update(parent)
-                iquery = tbl.scheme_hierarchy.insert().values(
-                    scheme_id=scheme._alchemy_pk,
-                    parent_id=parent._alchemy_pk,
-                )
-                self.session.execute(iquery)
-            elif action == 'remove':
-                if not hasattr(parent, '_alchemy_pk') or not parent._alchemy_pk:
-                    raise NotImplementedError()
-                dquery = delete(tbl.scheme_hierarchy).where(
-                    and_(tbl.scheme_hierarchy.c.scheme_id==scheme._alchemy_pk,
-                         tbl.scheme_hierarchy.c.parent_id==parent._alchemy_pk)
-                )
-                self.session.execute(dquery)
-            else:
-                raise NotImplementedError(action)
-
-        for action, relation in scheme.relations._changes:
-            if action == 'new':
-                if not hasattr(relation, '_alchemy_pk') or not relation._alchemy_pk:
-                    self.conn.update(relation)
-            elif action == 'remove':
-                dquery = delete(tbl.concept_relation).where(
-                    and_(tbl.concept_relation.c.scheme_id==scheme._alchemy_pk,
-                         tbl.concept_relation.c.name==relation.name)
-                )
-                self.session.execute(dquery)
-            else:
-                raise NotImplementedError(action)
+        self.update_changes(
+            tbl.concept_relation,
+            scheme.relations._changes,
+            insert_f=None,
+            delete_f=lambda obj: and_(
+                tbl.concept_relation.c.scheme_id==scheme._alchemy_pk,
+                tbl.concept_relation.c.name==obj.name
+            )
+        )
+        scheme.relations._changes = []

@@ -8,4 +8,5 @@ class Relations(BaseRelations):
         self.conn = conn
 
     def update(self, obj):
-        raise NotImplementedError
+        url = 'schemes/{}/relations/{}'.format(obj.scheme.id, obj.orig_name)
+        self.conn._put(url, data={'name': obj.name})
