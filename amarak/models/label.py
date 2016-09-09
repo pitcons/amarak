@@ -2,6 +2,7 @@
 from amarak.utils import smart_encode, smart_decode
 from rdflib.namespace import SKOS
 
+
 class LabelTypeError(Exception):
     pass
 

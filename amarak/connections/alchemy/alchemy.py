@@ -31,3 +31,9 @@ class AlchemyConnection(BaseConnection):
         self.concepts = Concepts(self)
         self.relations = Relations(self)
         self.links = Links(self)
+
+        from amarak.connections.alchemy.tables import Base
+        Base.metadata.create_all(self.engine, checkfirst=True)
+
+    def close(self):
+        self.session.close()

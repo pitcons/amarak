@@ -130,6 +130,23 @@ class ConceptLabel(Base):
     __table__ = concept_label
 
 
+concept_note = Table(
+    'concept_note', Base.metadata,
+    Column('id', Integer, primary_key=True),
+    Column('concept_id',
+           Integer,
+           ForeignKey("concept.id", ondelete='cascade'),
+           nullable=False),
+    Column('type', String(64), nullable=False),
+    Column('lang', String(64), nullable=False),
+    Column('text', Text(), nullable=False, index=True),
+)
+
+
+class ConceptNote(Base):
+    __table__ = concept_note
+
+
 # class ConceptInScheme(Base):
 #     __table__ = Table(
 #         'concept_in_scheme', Base.metadata,

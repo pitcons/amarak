@@ -97,6 +97,8 @@ class Schemes(BaseSchemes):
         self.conn._put('schemes/' + orig_name(scheme), data)
         scheme._orig_name = scheme.name
 
+    def delete(self, scheme):
+        self.conn._delete('schemes/' + orig_name(scheme))
 
 class Concepts(BaseConcepts):
 
@@ -143,6 +145,13 @@ class RestConnection(BaseConnection):
     def _get(self, url, data=None):
         url = join(self.url, url)
         response = requests.get(url, data)
+        response.raise_for_status()
+
+        return json.loads(response.content)
+
+    def _delete(self, url):
+        url = join(self.url, url)
+        response = requests.delete(url)
         response.raise_for_status()
 
         return json.loads(response.content)

@@ -2,6 +2,8 @@
 from .labels_manager import LabelsManager
 from .manager import Manager
 from .link import Link
+from .note import Note
+from .notes_manager import NotesManager
 from amarak.utils import smart_encode, smart_decode
 
 
@@ -21,6 +23,7 @@ class Concept(object):
         self.scheme = scheme
         self.labels = LabelsManager()
         self.links = LinkManager()
+        self.notes = NotesManager()
 
     @property
     def name(self):

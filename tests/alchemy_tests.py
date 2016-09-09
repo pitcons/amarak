@@ -228,3 +228,24 @@ class ConceptsTest(TestDB):
 
         # self.conn.identity_map.clear()
         links = list(self.conn.links.all())
+
+    def test_notes(self):
+        scheme = ConceptScheme('example1', ('example1', 'http://example1.com'))
+        self.conn.schemes.update(scheme)
+
+        concept = Concept('Some Concept', scheme=scheme)
+        self.assertEquals(concept.notes.all(), [])
+
+        concept.notes.add("en", "description", "First note")
+        concept.notes.add("en", "description", "Second note")
+
+        self.assertEquals(len(concept.notes.all()), 2)
+        self.conn.update(concept)
+
+        concepts = list(self.conn.concepts.filter(scheme=scheme))
+        concept = concepts[0]
+
+        notes = concept.notes.all()
+        self.assertEquals(len(notes), 2)
+        self.assertEquals(notes[0].literal, "First note")
+        self.assertEquals(notes[1].literal, "Second note")
